@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR Visualizer</title>
+
+    <!-- A-Frame + AR.js CDN -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.rawgit.com/jeromeetienne/ar.js/2.2.1/aframe/build/aframe-ar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.loaders.min.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        background-color: #f7f7f7;
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        text-align: center;
+      }
+
+      header {
+        padding: 1rem;
+        color: #dda900;
+        font-size: 2rem;
+        font-weight: bold;
+      }
+
+      #description {
+        margin-top: 1rem;
+        padding: 0 1rem;
+        max-width: 600px;
+        color: #333;
+        font-size: 1rem;
+      }
+
+      #ui {
+        position: fixed;
+        top: 70px;
+        z-index: 10;
+        display: flex;
+        gap: 1rem;
+        background: rgba(247, 247, 247, 0.95);
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        align-items: center;
+      }
+
+      select,
+      button {
+        padding: 0.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+      }
+
+      select {
+        background-color: #847ced;
+        color: white;
+      }
+
+      button {
+        background-color: #dda900;
+        color: white;
+        cursor: pointer;
+      }
+
+      a-scene {
+        width: 100%;
+        height: 100vh;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>AR Visualizer</header>
+
+    <div id="ui">
+      <select id="modelSelector">
+        <option value="">Seleziona un modello</option>
+        <option value="https://modelviewer.dev/shared-assets/models/Astronaut.glb">Astronauta</option>
+        <option value="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb">Robot</option>
+        <option value="https://modelviewer.dev/shared-assets/models/Chair.glb">Sedia</option>
+      </select>
+      <button id="resetBtn">Rimuovi Tutto</button>
+    </div>
+
+    <a-scene
+      vr-mode-ui="enabled: false"
+      embedded
+      arjs="sourceType: webcam; debugUIEnabled: false;"
+    >
+      <a-camera position="0 0 0" look-controls-enabled="false"></a-camera>
+    </a-scene>
+
+    <div id="description">
+      Questa applicazione consente di visualizzare e posizionare fino a 5 modelli 3D in realtà aumentata, selezionabili da un menu. Clicca nell'ambiente per piazzare il modello selezionato.
+    </div>
+
+    <script>
+      const modelSelector = document.getElementById("modelSelector");
+      const resetBtn = document.getElementById("resetBtn");
+      const scene = document.querySelector("a-scene");
+
+      let placedModels = 0;
+      const maxModels = 5;
+
+      // Rimuovi tutti i modelli
+      resetBtn.addEventListener("click", () => {
+        const placed = document.querySelectorAll(".placed-model");
+        placed.forEach((el) => el.parentNode.removeChild(el));
+        placedModels = 0;
+      });
+
+      // Aggiungi modello al clic
+      scene.addEventListener("click", (e) => {
+        if (!modelSelector.value || placedModels >= maxModels) return;
+
+        const touchPoint = e.detail.intersection?.point;
+        if (!touchPoint) return;
+
+        const model = document.createElement("a-entity");
+        model.setAttribute("gltf-model", modelSelector.value);
+        model.setAttribute("scale", "0.5 0.5 0.5");
+        model.setAttribute("position", `${touchPoint.x} ${touchPoint.y} ${touchPoint.z}`);
+        model.classList.add("placed-model");
+
+        scene.appendChild(model);
+        placedModels++;
+      });
+    </script>
+  </body>
+</html>
